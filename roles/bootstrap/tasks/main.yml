@@ -1,0 +1,32 @@
+---
+
+ - name: Create groups
+   group: name={{ item.name }} state=present
+   with_items: "{{ itix_groups }}"
+   tags: bootstrap
+
+ - name: Create users
+   user: state=present name={{ item.login }} group={{ item.group }} groups={{ item.groups }} uid={{ item.uid }} comment={{ item.comment }} password={{ item.password }}
+   with_items: "{{ itix_users }}"
+   tags: bootstrap
+
+ - name: Create the .ssh directory for users
+   file: state=directory owner={{ item.login }} group={{ item.group }} mode=0700 path=/home/{{ item.login }}/.ssh
+   with_items: "{{ itix_users }}"
+   tags: bootstrap
+
+ - name: Set a strong root password (only usable from console)
+   user: name=root password={{ root_password }}
+   tags: bootstrap
+
+ - name: Set SSH key for users
+   authorized_key: user={{ item.login }} key="{{ item.ssh_public_key }}"
+   with_items: "{{ itix_users }}"
+   when: "item.ssh_public_key is defined"
+   tags: bootstrap
+
+ - name: Configure SUDO
+   template: src=sudoers dest=/etc/sudoers owner=root group=root mode=0440 validate="/usr/sbin/visudo -cf %s"
+   tags:
+     - bootstrap
+     - config

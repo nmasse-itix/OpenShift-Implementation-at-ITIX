@@ -1,0 +1,18 @@
+---
+
+  - name: Install centos-release-openshift-origin
+    yum: name=centos-release-openshift-origin state=installed
+    tags: rpm
+
+  - name: Install required RPMs
+    yum: name={{ item }} state=installed
+    with_items:
+      - git
+      - net-tools
+      - bind-utils
+      - bridge-utils
+      - bash-completion
+      - origin-clients
+      - NetworkManager
+      - nfs-utils
+    tags: rpm
