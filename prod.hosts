@@ -2,8 +2,8 @@
 # Variables used by my playbook
 #
 [lab:vars]
-lab_dns_suffix=itix.work
-docker_storage_vg=docker
+lab_dns_suffix=itix.fr
+docker_storage_vg=storage
 
 [lab:children]
 masters
@@ -13,13 +13,13 @@ masters
 #
 [all:vars]
 # Default route suffix
-openshift_master_default_subdomain=app.itix.work
+openshift_master_default_subdomain=app.itix.fr
 
 [masters]
-openshift.itix.work
+openshift.itix.fr
 
 [nodes]
-openshift.itix.work openshift_schedulable=true openshift_node_labels='{ "workload-infra": "true", "workload-app": "true" }'
+openshift.itix.fr openshift_schedulable=true openshift_node_labels='{ "workload-infra": "true", "workload-app": "true" }'
 
 #
 # The rest is used only by the OpenShift installer playbook
@@ -56,5 +56,5 @@ openshift_hosted_router_selector='workload-infra=true'
 # Do not create the default project "my-project"
 openshift_additional_projects={}
 
-# Enable the multitenant SDN
+# Enable the "flat network" SDN
 os_sdn_network_plugin_name='redhat/openshift-ovs-subnet'
