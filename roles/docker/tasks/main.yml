@@ -15,20 +15,23 @@
   - name: Start docker
     service: name=docker state=started
     tags: docker-storage
+    when: 'docker_storage_setup_needs_to_run is not defined'
 
   - name: Determine if docker storage driver == devicemapper
-    shell: docker info | grep 'Storage Driver:.*devicemapper'
-    register: correct_storage_driver
+    shell: docker info
+    register: docker_info
     changed_when: false
-    ignore_errors: yes
-
-  - debug:
-      var: correct_storage_driver
+    when: 'docker_storage_setup_needs_to_run is not defined'
 
   - name: set docker_storage_setup_needs_to_run
     set_fact:
-      docker_storage_setup_needs_to_run: '{{ correct_storage_driver.rc == 1 }}'
+      docker_storage_setup_needs_to_run: '{{ docker_info.stdout.find(''Storage Driver: devicemapper'') == -1 or docker_info.stdout.find(''Data file: /dev/loop'') != -1 }}'
+    when: 'docker_storage_setup_needs_to_run is not defined'
     tags: docker-storage
+
+  - name: Cleanup the existing docker-storage state
+    file: state=absent path=/etc/sysconfig/docker-storage
+    when: docker_storage_setup_needs_to_run
 
   - name: stop docker
     service:
