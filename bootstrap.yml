@@ -3,7 +3,5 @@
  - name: Bootstrap one or more CentOS 7 nodes
    hosts: bootstrap
    become: no
-   vars_files:
-     - private/private_vars.yml
    roles:
     - bootstrap
