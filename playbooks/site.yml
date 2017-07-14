@@ -1,0 +1,10 @@
+---
+
+  - include: "switch-to-iptables.yml"
+
+  - include: "preparation.yml"
+
+  # Launch the OpenShift Installer Playbook
+  - include: "./openshift-ansible/playbooks/byo/config.yml"
+
+  - include: "post-install.yml"

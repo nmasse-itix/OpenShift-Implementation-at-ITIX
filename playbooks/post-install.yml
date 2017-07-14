@@ -1,0 +1,9 @@
+---
+
+  - name: Complete the OpenShift installation
+    hosts: lab
+    become: yes
+    tasks:
+      - name: Give admin rights to nicolas
+        command: oc adm policy add-cluster-role-to-user cluster-admin nicolas.masse@itix.fr
+    
