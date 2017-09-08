@@ -6,4 +6,5 @@
     tasks:
       - name: Give admin rights to nicolas
         command: oc adm policy add-cluster-role-to-user cluster-admin nicolas.masse@itix.fr
-    
+    roles:
+    - { name: 'hostpath-provisioner', tags: 'hostpath-provisioner' }
