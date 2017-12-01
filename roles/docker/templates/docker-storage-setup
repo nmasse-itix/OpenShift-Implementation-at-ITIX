@@ -1,27 +1,10 @@
-STORAGE_DRIVER=devicemapper
+STORAGE_DRIVER={{ docker_storage_driver }}
+{% if docker_storage_driver == 'devicemapper' %}
 DOCKER_ROOT_VOLUME=yes
-
+{% if docker_storage_disk is defined %}
+DEVS={{ docker_storage_disk }}
+{% endif %}
 {% if docker_storage_vg is defined %}
 VG={{ docker_storage_vg }}
 {% endif %}
-
-# Enable automatic extension of pool by lvm. lvm can monitor
-# the pool and automatically extend it when pool is getting full.
-AUTO_EXTEND_POOL=true
-
-# Determines the pool extension threshold in terms of percentage
-# of pool size. For example, if threshold is 60, that means when
-# pool is 60% full, threshold has been hit.
-POOL_AUTOEXTEND_THRESHOLD=80
-
-# Determines the amount by which pool needs to be grown. This is
-# specified in terms of % of pool size. So a value of 20 means
-# that when threshold is hit, pool will be grown by 20% of existing
-# pool size.
-POOL_AUTOEXTEND_PERCENT=20
-
-# Create a Logical Volume of 20G for /var/lib/docker
-DOCKER_ROOT_VOLUME_SIZE=20G
-
-# Create a Thinpool Logical Volume of 50G for Container Storage
-DATA_SIZE=50G
+{% endif %}
