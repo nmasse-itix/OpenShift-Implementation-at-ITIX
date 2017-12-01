@@ -1,0 +1,8 @@
+---
+
+  - name: Configure the OpenShift Access Control Layer
+    hosts: itix
+    become: yes
+    tasks:
+    - name: Remove authenticated users the right to create projects
+      command: oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth

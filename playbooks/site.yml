@@ -8,3 +8,5 @@
   - include: "./openshift-ansible/playbooks/byo/config.yml"
 
   - include: "post-install.yml"
+
+  - include: "configure-openshift-access-control.yml"
