@@ -1,14 +1,4 @@
 # OpenShift-Lab
-This project is the Ansible Playbook to install OpenShift in a Lab Environment.
+This project is my Ansible Playbook to install OpenShift on my personal server.
 
-## Preparation work
-
-1. Pull the "openshift-ansible" sub-project using `git submodule init && git submodule update` 
-2. Review \*.hosts and change hostnames to target your Virtual Machines 
-
-## Example
-
-```
-./ansible bootstrap vm.openshift.test
-./ansible play allinone
-```
+More to see there... Well, maybe... 
