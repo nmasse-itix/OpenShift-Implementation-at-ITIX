@@ -3,7 +3,7 @@
 #
 [lab:vars]
 lab_dns_suffix=itix.fr
-docker_storage_vg=storage
+openshift_version=3.7
 
 [lab:children]
 masters
@@ -18,8 +18,11 @@ openshift_master_default_subdomain=app.itix.fr
 [masters]
 openshift.itix.fr
 
+[etcd]
+openshift.itix.fr
+
 [nodes]
-openshift.itix.fr openshift_schedulable=true openshift_node_labels='{ "workload-infra": "true", "workload-app": "true" }'
+openshift.itix.fr openshift_schedulable=true openshift_node_labels='{ "region": "infra" }'
 
 #
 # The rest is used only by the OpenShift installer playbook
@@ -27,16 +30,14 @@ openshift.itix.fr openshift_schedulable=true openshift_node_labels='{ "workload-
 [OSEv3:children]
 masters
 nodes
+etcd
 
 [OSEv3:vars]
 # Yes, we need to use sudo
 ansible_become=yes
 
 # what to install
-deployment_type=origin
-
-# New installation method : everything in containers !
-contenairized=true
+deployment_type=openshift-enterprise
 
 # Clustering method
 openshift_master_cluster_method=native
@@ -44,14 +45,8 @@ openshift_master_cluster_method=native
 # Bypass Registry Security Checks
 openshift_docker_insecure_registries=172.30.0.0/16
 
-# default project node selector
-osm_default_node_selector='workload-app=true'
-
 # Make sure NTP is enabled
 openshift_clock_enabled=true
-
-# default router
-openshift_hosted_router_selector='workload-infra=true'
 
 # Do not create the default project "my-project"
 openshift_additional_projects={}
