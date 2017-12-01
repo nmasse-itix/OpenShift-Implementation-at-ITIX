@@ -10,7 +10,7 @@
       - rhel-7-server-rpms
       - rhel-7-server-optional-rpms
       - rhel-7-server-extras-rpms
-      - rhel-7-server-ose-{{ openshift_version }}-rpms
+      - rhel-7-server-ose-{{ lab_openshift_version }}-rpms
       - rhel-7-fast-datapath-rpms # see https://access.redhat.com/solutions/3008401
     tags: rpm
 

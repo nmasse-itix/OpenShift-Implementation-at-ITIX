@@ -3,7 +3,7 @@
 #
 [lab:vars]
 lab_dns_suffix=itix.fr
-openshift_version=3.7
+lab_openshift_version=3.7
 
 [lab:children]
 masters
