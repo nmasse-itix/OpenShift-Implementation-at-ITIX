@@ -1,15 +1,15 @@
 #
-# Variables used by my playbook
+# Variables used by the ITIX playbook
 #
-[lab:vars]
-lab_dns_suffix=itix.fr
-lab_openshift_version=3.7
+[itix:vars]
+itix_dns_suffix=itix.fr
+itix_openshift_version=3.7
 
-[lab:children]
+[itix:children]
 masters
 
 #
-# Shared variables used by both openshift-ansible and my playbook
+# Shared variables used by both openshift-ansible and the ITIX playbook
 #
 [all:vars]
 # Default route suffix
