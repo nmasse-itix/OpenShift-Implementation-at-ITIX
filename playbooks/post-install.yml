@@ -1,7 +1,7 @@
 ---
 
   - name: Complete the OpenShift installation
-    hosts: lab
+    hosts: itix
     become: yes
     roles:
     - { name: 'hostpath-provisioner', tags: 'hostpath-provisioner' }

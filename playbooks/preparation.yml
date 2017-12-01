@@ -1,7 +1,7 @@
 ---
 
   - name: Prepare an "All-in-one" VM for OpenShift
-    hosts: lab
+    hosts: itix
     become: yes
     roles:
     - { name: 'base', tags: 'base' }

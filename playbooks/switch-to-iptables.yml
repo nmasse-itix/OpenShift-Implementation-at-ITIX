@@ -1,7 +1,7 @@
 ---
 
   - name: Switch to iptables
-    hosts: lab
+    hosts: itix
     become: yes
     tasks:
     - name: Install iptables-services
