@@ -50,8 +50,9 @@ osm_default_node_selector='workload-app=true'
 # Make sure NTP is enabled
 openshift_clock_enabled=true
 
-# default router
+# Place router and registry on infra nodes
 openshift_hosted_router_selector='workload-infra=true'
+openshift_hosted_registry_selector='workload-infra=true'
 
 # Do not create the default project "my-project"
 openshift_additional_projects={}
