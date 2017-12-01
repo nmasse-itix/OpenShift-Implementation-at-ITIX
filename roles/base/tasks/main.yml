@@ -56,3 +56,25 @@
 
   - name: Ensure consistent locale across systems (2/2)
     lineinfile: dest=/etc/locale.conf line="LC_CTYPE=en_US.utf8"
+
+  - name: Make sure the optional repo is enabled
+    command: subscription-manager repos --enable rhel-7-server-optional-rpms
+
+  - name: Install yum-cron
+    yum:
+      name: yum-cron
+      state: installed
+
+  - name: Configure yum-cron to handle only security fixes
+    lineinfile:
+      path: /etc/yum/yum-cron.conf
+      line: "update_cmd = security"
+      regexp: "^ *update_cmd +="
+      state: present
+
+  - name: Configure yum-cron to install automatically security fixes
+    lineinfile:
+      path: /etc/yum/yum-cron.conf
+      line: "apply_updates = yes"
+      regexp: "^ *apply_updates +="
+      state: present
