@@ -1,7 +1,17 @@
 ---
 
-  - name: Install centos-release-openshift-origin
-    yum: name=centos-release-openshift-origin state=installed
+  - name: First, disable any repos (using subscription-manager)
+    command: subscription-manager repos --disable="*"
+    tags: rpm
+
+  - name: Make sure mandatory repos are enabled
+    command: subscription-manager repos --enable {{ item }}
+    with_items:
+      - rhel-7-server-rpms
+      - rhel-7-server-optional-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-ose-{{ openshift_version }}-rpms
+      - rhel-7-fast-datapath-rpms # see https://access.redhat.com/solutions/3008401
     tags: rpm
 
   - name: Install required RPMs
@@ -12,7 +22,6 @@
       - bind-utils
       - bridge-utils
       - bash-completion
-      - origin-clients
       - NetworkManager
       - nfs-utils
     tags: rpm
