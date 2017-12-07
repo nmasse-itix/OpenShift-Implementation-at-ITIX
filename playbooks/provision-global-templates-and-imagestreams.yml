@@ -83,12 +83,18 @@
       command: oc import-image {{ item }} --confirm --scheduled --all -n openshift
       with_items: '{{ oc_get_is.stdout_lines }}'
 
-    - name: Import additional Red Hat image streams
-      command: oc import-image -n openshift {{ item.key }} --from {{ item.value }} --confirm --scheduled --all
+    - name: Import additional Red Hat image streams (initial import)
+      command: oc import-image -n openshift {{ item.key }} --from {{ item.value }} --confirm --scheduled
       with_dict:
-        rhel-atomic: rhel-atomic
-        rhel: rhel7.4
+        rhel7-atomic: registry.access.redhat.com/rhel7-atomic:latest
+        rhel7: registry.access.redhat.com/rhel7:latest
       when: '(''imagestreams/'' ~ item.key) not in oc_get_is.stdout_lines'
+
+    - name: Import additional Red Hat image streams (additional tags)
+      command: oc tag -n openshift {{ item.value }} {{ item.key }} --scheduled
+      with_dict:
+        'rhel7-atomic:7.4': registry.access.redhat.com/rhel7-atomic:7.4
+        'rhel7:7.4': registry.access.redhat.com/rhel7:7.4
 
     - name: Delete the temporary directory
       file:
