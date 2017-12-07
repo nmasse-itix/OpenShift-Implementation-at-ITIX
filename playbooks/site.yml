@@ -5,8 +5,10 @@
   - include: "preparation.yml"
 
   # Launch the OpenShift Installer Playbook
-  - include: "./openshift-ansible/playbooks/byo/config.yml"
+  - include: "../openshift-ansible/playbooks/byo/config.yml"
 
   - include: "post-install.yml"
+
+  - include: "provision-global-templates-and-imagestreams.yml"
 
   - include: "configure-openshift-access-control.yml"

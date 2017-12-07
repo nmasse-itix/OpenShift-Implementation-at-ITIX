@@ -1,0 +1,72 @@
+---
+
+  - include: "../openshift-ansible/playbooks/byo/openshift-master/additional_config.yml"
+
+  - name: Provision the default templates and image streams in OpenShift
+    hosts: itix
+    become: yes
+    vars:
+      itix_application_templates_repo_url: https://github.com/jboss-openshift/application-templates.git
+    tasks:
+    - name: Create a temporary directory
+      tempfile:
+        state: directory
+      register: tempfile
+
+    - name: Clone the jboss-openshift/application-templates GIT repository
+      git:
+        repo: '{{ itix_application_templates_repo_url }}'
+        dest: '{{ tempfile.path }}/application-templates'
+        version: '{{ itix_application_templates_repo_tag|default(''master'') }}'
+
+    - name: Get an archive of the OpenShift GIT repository
+      get_url:
+        url: 'https://github.com/openshift/origin/archive/{{ itix_openshift_origin_repo_tag|default(''master'') }}.tar.gz'
+        dest: '{{ tempfile.path }}/openshift-origin.tar.gz'
+
+    - name: Extract the OpenShift GIT archive
+      unarchive:
+        remote_src: yes
+        src: '{{ tempfile.path }}/openshift-origin.tar.gz'
+        dest: '{{ tempfile.path }}'
+
+    - name: Symlink the OpenShift GIT repo
+      file:
+        src: '{{ tempfile.path }}/origin-{{ itix_openshift_origin_repo_tag|default(''master'') }}'
+        dest: '{{ tempfile.path }}/openshift-origin'
+        state: link
+
+    - set_fact:
+        objects_to_import:
+        - '{{ tempfile.path }}/application-templates/jboss-image-streams.json'
+        - '{{ tempfile.path }}/application-templates/sso/sso71-postgresql-persistent.json'
+        - '{{ tempfile.path }}/application-templates/openjdk/openjdk18-web-basic-s2i.json'
+        - '{{ tempfile.path }}/openshift-origin/examples/jenkins/jenkins-persistent-template.json'
+
+    - name: Install new ImageStreams/Templates in the "openshift" namespace
+      command: oc create -n openshift -f "{{ item }}"
+      register: oc
+      failed_when: oc.rc > 0 and 'Error from server (AlreadyExists):' not in oc.stderr
+      changed_when: oc.rc == 0
+      with_items: '{{ objects_to_import }}'
+
+    - name: Update existing ImageStreams/Templates in the "openshift" namespace
+      command: oc replace -n openshift -f "{{ item }}"
+      register: oc
+      failed_when: oc.rc > 0 and 'Error from server (NotFound):' not in oc.stderr
+      changed_when: oc.rc == 0
+      with_items: '{{ objects_to_import }}'
+
+    - name: Get a list of currently installed templates
+      command: oc get templates -n openshift -o name
+      register: oc_get_templates
+
+    - name: Delete ephemeral templates
+      command: oc delete {{ item }} -n openshift
+      when: item|regex_search('-ephemeral$')
+      with_items: '{{ oc_get_templates.stdout_lines }}'
+
+    - name: Delete the temporary directory
+      file:
+        path: '{{ tempfile.path }}'
+        state: absent

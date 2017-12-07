@@ -4,6 +4,8 @@
 [itix:vars]
 itix_dns_suffix=itix.fr
 itix_openshift_version=3.7
+itix_application_templates_repo_tag=ose-v1.4.7
+itix_openshift_origin_repo_tag=release-3.7
 
 [itix:children]
 masters
@@ -33,6 +35,14 @@ nodes
 etcd
 
 [OSEv3:vars]
+#
+# Starting with 3.6, default templates and imagestreams can be left out
+# see https://bugzilla.redhat.com/show_bug.cgi?id=1506578
+#
+openshift_install_examples=true
+openshift_examples_load_quickstarts=false
+openshift_examples_load_xpaas=false
+
 # Yes, we need to use sudo
 ansible_become=yes
 
