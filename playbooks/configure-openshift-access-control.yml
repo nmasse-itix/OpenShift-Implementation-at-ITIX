@@ -6,3 +6,6 @@
     tasks:
     - name: Remove authenticated users the right to create projects
       command: oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
+
+    - name: Give the monitoring rights to nicolas
+      command: oc adm policy add-role-to-user view nicolas.masse@itix.fr -n openshift-metrics

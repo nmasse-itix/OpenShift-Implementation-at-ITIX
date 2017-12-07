@@ -5,9 +5,12 @@
   - include: "preparation.yml"
 
   # Launch the OpenShift Installer Playbook
-  - include: "../openshift-ansible/playbooks/byo/config.yml"
+  - include: "../openshift-ansible/playbooks/byo/openshift-clister/config.yml"
 
   - include: "post-install.yml"
+
+  # Install Prometheus
+  - include: "../openshift-ansible/playbooks/byo/openshift-cluster/openshift-prometheus.yml"
 
   - include: "provision-global-templates-and-imagestreams.yml"
 
