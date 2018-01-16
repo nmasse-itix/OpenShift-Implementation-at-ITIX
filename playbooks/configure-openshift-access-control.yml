@@ -3,9 +3,17 @@
   - name: Configure the OpenShift Access Control Layer
     hosts: itix
     become: yes
+    vars:
+      itix_sso_route: sso.{{ openshift_master_default_subdomain }}
     tasks:
     - name: Remove authenticated users the right to create projects
       command: oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
 
+    - name: Nicolas can create projects
+      command: oc adm policy add-cluster-role-to-user self-provisioner nicolas.masse@itix.fr
+
     - name: Give the monitoring rights to nicolas
       command: oc adm policy add-role-to-user view nicolas.masse@itix.fr -n openshift-metrics
+
+    roles:
+      - { name: 'sso', tags: 'sso' }

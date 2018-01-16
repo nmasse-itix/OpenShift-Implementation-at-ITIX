@@ -1,0 +1,8 @@
+---
+
+itix_sso_template: sso71-allinone
+itix_sso_project: sso
+itix_sso_realm: itix
+itix_sso_application_name: sso
+itix_sso_retries: 30
+itix_sso_delay: 5
