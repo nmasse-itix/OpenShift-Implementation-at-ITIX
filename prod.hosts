@@ -6,6 +6,7 @@ itix_dns_suffix=itix.fr
 itix_openshift_version=3.7
 itix_application_templates_repo_tag=ose-v1.4.7
 itix_openshift_origin_repo_tag=release-3.7
+itix_openshift_docker_images_repo_tag=master
 
 [itix:children]
 masters
@@ -35,12 +36,6 @@ nodes
 etcd
 
 [OSEv3:vars]
-# Deploy Prometheus
-openshift_hosted_prometheus_deploy=true
-openshift_prometheus_storage_type='pvc'
-openshift_prometheus_alertmanager_storage_type='pvc'
-openshift_prometheus_alertbuffer_storage_type='pvc'
-
 #
 # Starting with 3.6, default templates and imagestreams can be left out
 # see https://bugzilla.redhat.com/show_bug.cgi?id=1506578
