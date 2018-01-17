@@ -21,6 +21,11 @@
     url: 'https://github.com/openshift/origin/archive/{{ itix_openshift_origin_repo_tag|default(''master'') }}.tar.gz'
     dest: '{{ tempfile.path }}/openshift-origin.tar.gz'
 
+- name: Get the Minio template
+  get_url:
+    url: 'https://raw.githubusercontent.com/nmasse-itix/OpenShift-Docker-Images/master/minio/minio.yaml'
+    dest: '{{ tempfile.path }}/minio.yaml'
+
 - name: Extract the OpenShift GIT archive
   unarchive:
     remote_src: yes
@@ -39,6 +44,7 @@
     - '{{ tempfile.path }}/application-templates/openjdk/openjdk18-web-basic-s2i.json'
     - '{{ tempfile.path }}/openshift-origin/examples/jenkins/jenkins-persistent-template.json'
     - '{{ tempfile.path }}/sso71-allinone.yaml'
+    - '{{ tempfile.path }}/minio.yaml'
 
 - name: Install new ImageStreams/Templates in the "openshift" namespace
   command: oc create -n openshift -f "{{ item }}"
