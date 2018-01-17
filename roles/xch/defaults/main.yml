@@ -1,0 +1,6 @@
+---
+
+itix_xch_project: xch
+itix_xch_template: minio
+itix_xch_retries: 30
+itix_xch_delay: 5

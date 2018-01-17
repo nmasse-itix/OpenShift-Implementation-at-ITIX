@@ -17,3 +17,5 @@
   - include: "deploy-prometheus.yml"
 
   - include: "configure-openshift-access-control.yml"
+
+  - include: "deploy-xch.yml"
