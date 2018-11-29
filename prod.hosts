@@ -25,7 +25,7 @@ openshift.itix.fr
 openshift.itix.fr
 
 [nodes]
-openshift.itix.fr openshift_node_groups=node-config-all-in-one
+openshift.itix.fr openshift_node_group_name='node-config-all-in-one'
 
 #
 # The rest is used only by the OpenShift installer playbook
