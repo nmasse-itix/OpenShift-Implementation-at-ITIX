@@ -3,9 +3,9 @@
 #
 [itix:vars]
 itix_dns_suffix=itix.fr
-itix_openshift_version=3.9
+itix_openshift_version=3.10
 itix_application_templates_repo_tag=ose-v1.4.7
-itix_openshift_origin_repo_tag=release-3.9
+itix_openshift_origin_repo_tag=release-3.10
 itix_openshift_docker_images_repo_tag=master
 
 [itix:children]
@@ -25,7 +25,7 @@ openshift.itix.fr
 openshift.itix.fr
 
 [nodes]
-openshift.itix.fr openshift_node_labels='{ "region": "infra", "node-role.kubernetes.io/compute": "true", "node-role.kubernetes.io/master": "true" }'
+openshift.itix.fr openshift_node_groups=node-config-all-in-one
 
 #
 # The rest is used only by the OpenShift installer playbook
@@ -64,5 +64,4 @@ openshift_additional_projects={}
 
 # Enable the "flat network" SDN
 os_sdn_network_plugin_name='redhat/openshift-ovs-subnet'
-
 
