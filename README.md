@@ -118,3 +118,143 @@ ansible-playbook -i prod.hosts playbooks/preparation.yml
 ansible-playbook -i prod.hosts openshift-ansible/playbooks/deploy_cluster.yml
 ansible-playbook -i prod.hosts playbooks/post-install.yml
 ```
+
+## Deploy the Software Factory
+
+### Red Hat SSO
+
+```sh
+oc new-project sso --display-name="Single Sign-On"
+for resource in sso73-image-stream.json \
+  sso73-x509-https.json \
+  sso73-x509-postgresql-persistent.json
+do
+  oc replace -n openshift --force -f \
+  https://raw.githubusercontent.com/jboss-container-images/redhat-sso-7-openshift-image/sso73-dev/templates/${resource}
+done
+oc -n openshift import-image redhat-sso73-openshift:1.0
+oc policy add-role-to-user view system:serviceaccount:$(oc project -q):default
+
+oc new-app --template=sso73-x509-postgresql-persistent --name=sso -p SSO_HOSTNAME=sso.app.itix.fr -p DB_USERNAME=sso -p SSO_ADMIN_USERNAME=admin -p DB_DATABASE=sso
+oc delete route sso
+oc create -f - <<EOF
+  apiVersion: v1
+  id: sso-https
+  kind: Route
+  metadata:
+    annotations:
+      description: Route for application's https service.
+    labels:
+      application: sso
+    name: sso
+  spec:
+    host: sso.app.itix.fr
+    tls:
+      termination: reencrypt
+    to:
+      name: sso
+EOF
+```
+
+### Jenkins
+
+```sh
+oc project factory --display-name="Software Factory"
+oc new-app --template=jenkins-persistent --name=jenkins -p MEMORY_LIMIT=2Gi
+oc set env dc/jenkins JENKINS_OPTS=--sessionTimeout=86400
+
+oc delete route jenkins
+oc create -f - <<EOF
+  apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      haproxy.router.openshift.io/timeout: 4m
+      template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    name: jenkins
+  spec:
+    host: jenkins.app.itix.fr
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: jenkins
+EOF
+
+oc process -f https://raw.githubusercontent.com/microcks/microcks-jenkins-plugin/master/openshift-jenkins-master-bc.yml | oc create -f -
+oc set triggers dc/jenkins --remove --from-image=openshift/jenkins:2
+oc set triggers dc/jenkins --from-image=microcks-jenkins-master:latest -c jenkins
+```
+
+### Microcks
+
+```sh
+oc project factory
+git clone https://github.com/microcks/microcks-ansible-operator.git
+cd microcks-ansible-operator/
+oc create -f deploy/crds/microcks_v1alpha1_microcksinstall_crd.yaml
+oc create -f deploy/service_account.yaml
+oc create -f deploy/role.yaml
+oc create -f deploy/role_binding.yaml
+oc create -f deploy/operator.yaml
+
+oc replace -n factory -f - <<EOF
+apiVersion: microcks.github.io/v1alpha1
+kind: MicrocksInstall
+metadata:
+  name: microcks
+spec:
+  name: microcks
+  version: "0.7.1"
+  microcks:
+    replicas: 1
+    url: microcks.app.itix.fr
+  postman:
+    replicas: 1
+  keycloak:
+    install: false
+    url: sso.app.itix.fr
+    replicas: 1
+  mongodb:
+    install: true
+    persistent: true
+    volumeSize: 2Gi
+    replicas: 1
+EOF
+
+oc create -f - <<EOF
+kind: OAuthClient
+apiVersion: v1
+metadata:
+  name: microcks
+respondWithChallenges: false
+secret: $(uuidgen)
+redirectURIs:
+- https://sso.app.itix.fr/auth/realms/microcks/broker/openshift-v3/endpoint
+EOF
+oc get oauthclient microcks -o yaml
+```
+
+### Nexus
+
+```sh
+oc project factory
+oc create secret docker-registry partner-registry --docker-username=your.rhn.login --docker-password=your.rhn.password --docker-email=your.email@example.test --docker-server=registry.connect.redhat.com
+oc secrets link default partner-registry --for=pull
+oc import-image nexus-repository-manager:latest --confirm --scheduled --from=registry.connect.redhat.com/sonatype/nexus-repository-manager:latest
+
+oc new-app nexus-repository-manager --name=nexus
+oc patch dc/nexus -p '{"spec":{"strategy":{"type":"Recreate"}}}'
+oc expose svc/nexus --hostname=nexus.app.itix.fr
+oc patch route/nexus -p '{"spec":{"tls":{"insecureEdgeTerminationPolicy":"Redirect","termination":"edge"}}}'
+
+oc set probe dc/nexus --liveness --failure-threshold 3 --initial-delay-seconds 30 --open-tcp=8081
+oc set probe dc/nexus --readiness --failure-threshold 3 --initial-delay-seconds 30 --get-url=http://:8081/service/rest/repository/browse/maven-public/
+
+oc set volumes dc/nexus --add --name 'nexus-volume-1' --type 'pvc' --mount-path '/nexus-data/' --claim-name 'nexus' --claim-size '1Gi' --overwrite
+
+curl -o /tmp/nexus-functions -s https://raw.githubusercontent.com/OpenShiftDemos/nexus/master/scripts/nexus-functions
+source /tmp/nexus-functions
+add_nexus3_redhat_repos admin admin123 https://nexus.app.itix.fr
+```
