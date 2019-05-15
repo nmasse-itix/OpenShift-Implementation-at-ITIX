@@ -1,20 +1,17 @@
 ---
 
-  - include: "switch-to-iptables.yml"
-
   - include: "preparation.yml"
 
   # Launch the OpenShift Installer Playbook
-  - include: "../openshift-ansible/playbooks/byo/openshift-cluster/config.yml"
+  - include: "../openshift-ansible/playbooks/deploy_cluster.yml"
 
   - include: "post-install.yml"
 
   # Update the default templates and image streams
-  - include: "../openshift-ansible/playbooks/byo/openshift-master/additional_config.yml"
+  - include: "../openshift-ansible/playbooks/openshift-master/additional_config.yml"
 
-  - include: "provision-global-templates-and-imagestreams.yml"
-
-  - include: "deploy-prometheus.yml"
+  # Deploy the let's encrypt certificates
+  - include: "../openshift-ansible/playbooks/redeploy-certificates.yml"
 
   - include: "configure-openshift-access-control.yml"
 

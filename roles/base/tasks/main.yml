@@ -31,12 +31,12 @@
       - openssh-clients
     tags: rpm
 
-  - name: Install Open-VM tools
-    yum: name=open-vm-tools state=installed
-    tags: rpm
-
   - name: Fix /etc/environment to include PATH
     lineinfile: dest=/etc/environment regexp="^PATH=" line="PATH=/bin:/usr/bin:/sbin:/usr/sbin"
+    tags: config
+
+  - name: Make sure each machine has an up-to-date /etc/hosts
+    template: dest=/etc/hosts src=hosts
     tags: config
 
   - name: Persist the hostname
@@ -46,7 +46,7 @@
       - dns
 
   - name: Set the hostname
-    command: hostnamectl set-hostname {{ inventory_hostname_short }} --static
+    command: hostnamectl set-hostname {{ inventory_hostname_short }}
     tags:
       - config
       - dns

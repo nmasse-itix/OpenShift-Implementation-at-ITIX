@@ -5,6 +5,5 @@
     become: yes
     roles:
     - { name: 'base', tags: 'base' }
-    - { name: 'name-resolution', tags: 'name-resolution' }
     - { name: 'docker', tags: 'docker' }
     - { name: 'openshift-prereq', tags: 'openshift-prereq' }

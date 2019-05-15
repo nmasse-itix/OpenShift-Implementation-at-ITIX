@@ -3,10 +3,7 @@
 #
 [itix:vars]
 itix_dns_suffix=itix.fr
-itix_openshift_version=3.10
-itix_application_templates_repo_tag=ose-v1.4.7
-itix_openshift_origin_repo_tag=release-3.10
-itix_openshift_docker_images_repo_tag=master
+itix_openshift_version=3.11
 
 [itix:children]
 masters
@@ -25,7 +22,7 @@ openshift.itix.fr
 openshift.itix.fr
 
 [nodes]
-openshift.itix.fr openshift_node_group_name='node-config-all-in-one' openshift_kubelet_name_override='openshift.itix.fr'
+openshift.itix.fr openshift_node_group_name='node-config-all-in-one'
 
 #
 # The rest is used only by the OpenShift installer playbook
@@ -36,14 +33,6 @@ nodes
 etcd
 
 [OSEv3:vars]
-#
-# Starting with 3.6, default templates and imagestreams can be left out
-# see https://bugzilla.redhat.com/show_bug.cgi?id=1506578
-#
-openshift_install_examples=true
-openshift_examples_load_quickstarts=false
-openshift_examples_load_xpaas=false
-
 # Yes, we need to use sudo
 ansible_become=yes
 
@@ -52,9 +41,6 @@ deployment_type=openshift-enterprise
 
 # Clustering method
 openshift_master_cluster_method=native
-
-# Bypass Registry Security Checks
-openshift_docker_insecure_registries=172.30.0.0/16
 
 # Make sure NTP is enabled
 openshift_clock_enabled=true
@@ -65,3 +51,25 @@ openshift_additional_projects={}
 # Enable the "flat network" SDN
 os_sdn_network_plugin_name='redhat/openshift-ovs-subnet'
 
+# Do not use CRI-O
+openshift_use_crio=false
+
+# Use Firewalld
+os_firewall_use_firewalld=yes
+
+# Let's encrypt Certificates
+openshift_master_overwrite_named_certificates=true
+openshift_master_named_certificates=[{ "certfile": "{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.crt", "keyfile": "{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.key", "cafile": "{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.issuer.crt", "names": [ "openshift.itix.fr" ] }]
+openshift_hosted_router_certificate={ "certfile": "{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.crt", "keyfile": "{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.key", "cafile": "{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.issuer.crt" }
+openshift_master_openid_ca_file="{{ lookup('env','HOME') }}/.lego/certificates/openshift.itix.fr.issuer.crt"
+
+# Since we are using Let's Encrypt, generate a warning about expiration only
+# during the last 30 days
+openshift_certificate_expiry_warning_days=30
+
+# Since we have a public certificate for the master console, we need two different hostnames
+openshift_master_cluster_hostname=openshift-internal.itix.fr
+openshift_master_cluster_public_hostname=openshift.itix.fr
+
+# Skip docker images check since it fails no matter what
+openshift_disable_check=docker_image_availability

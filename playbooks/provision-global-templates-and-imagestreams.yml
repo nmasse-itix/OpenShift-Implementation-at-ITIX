@@ -1,7 +1,0 @@
----
-
-  - name: Provision the default templates and image streams in OpenShift
-    hosts: itix
-    become: yes
-    roles:
-    - { name: 'openshift-templates', tags: 'openshift-templates' }
