@@ -83,9 +83,6 @@ cat <<EOF > group_vars/OSEv3
 oreg_auth_password: your.password.here
 oreg_auth_user: '123|user-name'
 
-# The regular user account you created on your server
-ansible_ssh_user: nicolas
-
 openshift_additional_registry_credentials:
 - host: registry.connect.redhat.com
   user: rhn-username
