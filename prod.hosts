@@ -73,3 +73,6 @@ openshift_master_cluster_public_hostname=openshift.itix.fr
 
 # Skip docker images check since it fails no matter what
 openshift_disable_check=docker_image_availability
+
+# Inject the MAVEN_MIRROR_URL in all builds
+openshift_builddefaults_json='{"BuildDefaults":{"configuration":{"apiVersion":"v1","env":[{"name":"MAVEN_MIRROR_URL","value":"http://nexus.factory.svc.cluster.local:8081/repository/maven-all-public/"}],"kind":"BuildDefaultsConfig"}}}'
