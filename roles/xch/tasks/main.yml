@@ -7,7 +7,7 @@
 
 - name: Create a new project for Minio
   command: oc new-project "{{ itix_xch_project }}"
-  when: '"projects/" ~ itix_xch_project not in oc_get_projects.stdout_lines'
+  when: '"project.project.openshift.io/" ~ itix_xch_project not in oc_get_projects.stdout_lines'
 
 - name: Query existing deploymentconfigs
   command: oc get dc -n "{{ itix_xch_project }}" -o name -l "app=minio"

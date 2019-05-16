@@ -4,6 +4,6 @@
   hosts: itix
   become: yes
   vars:
-    itix_xch_route: xch.{{ openshift_master_default_subdomain }}
+    itix_xch_hostname: xch.{{ openshift_master_default_subdomain }}
   roles:
     - { name: 'xch', tags: 'xch' }
