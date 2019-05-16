@@ -37,6 +37,21 @@ When the bios shows up, press **<F11>** to enter the boot menu and boot from the
 
 [![Hetzner install](https://img.youtube.com/vi/q-brW2_23Lo/0.jpg)](https://www.youtube.com/watch?v=q-brW2_23Lo)
 
+In this video at 3:00, I configure in the **Installation Source** a repository that is hosted on another server.
+It's just a web server that serves the content of the ISO image:
+
+```sh
+yum install lighttpd
+systemctl start lighttpd
+mount rhel-server-7.6-x86_64-dvd.iso /var/www/lighttpd/ -o loop,ro
+```
+
+You can verify that your setup is correct with:
+
+```sh
+curl http://localhost/.treeinfo
+```
+
 ## Getting a public certificates with Let's encrypt
 
 On the Ansible control node, install [lego](https://github.com/go-acme/lego):
@@ -257,4 +272,116 @@ oc set volumes dc/nexus --add --name 'nexus-volume-1' --type 'pvc' --mount-path 
 curl -o /tmp/nexus-functions -s https://raw.githubusercontent.com/OpenShiftDemos/nexus/master/scripts/nexus-functions
 source /tmp/nexus-functions
 add_nexus3_redhat_repos admin admin123 https://nexus.app.itix.fr
+```
+
+### Ansible Tower
+
+```sh
+oc new-project tower --display-name="Ansible Tower"
+oc create -f - <<EOF
+kind: List
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ansible-tower-with-venv
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ansible-tower
+  spec:
+    dockerImageRepository: registry.access.redhat.com
+    tags:
+      - name: '3.4'
+        from:
+          kind: DockerImage
+          name: 'registry.access.redhat.com/ansible-tower-34/ansible-tower:3.4.3'
+        importPolicy:
+          scheduled: true
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: ansible-tower-with-venv
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ansible-tower-with-venv:latest
+    runPolicy: Serial
+    source:
+      dockerfile: |-
+        FROM registry.access.redhat.com/ansible-tower-34/ansible-tower:latest
+        USER root
+        RUN yum install -y gcc
+        RUN mkdir -p /var/lib/awx/venv/jinja2.8
+        RUN virtualenv --system-site-packages /var/lib/awx/venv/jinja2.8
+        RUN sh -c ". /var/lib/awx/venv/jinja2.8/bin/activate ; /var/lib/awx/venv/jinja2.8/bin/pip install python-memcached psutil ; pip install --upgrade jinja2;"
+    strategy:
+      type: Docker
+      dockerStrategy:
+        from:
+          kind: ImageStreamTag
+          name: ansible-tower:3.4
+    triggers:
+    - type: ImageChange
+    - type: ConfigChang
+EOF
+```
+
+```sh
+curl -L -o tower-setup.tar.gz https://releases.ansible.com/ansible-tower/setup_openshift/ansible-tower-openshift-setup-3.4.3.tar.gz
+tar zxvf tower-setup.tar.gz
+cd ansible-tower-openshift-setup-3.4.3/
+
+cat <<EOF > inventory
+localhost ansible_connection=local ansible_python_interpreter="/usr/bin/env python"
+
+[all:vars]
+admin_user=admin
+admin_password="$(head -c16 /dev/urandom |openssl dgst -sha1)"
+pg_username=tower
+pg_password="$(head -c16 /dev/urandom |openssl dgst -sha1)"
+pg_database='tower'
+pg_port=5432
+secret_key="$(head -c16 /dev/urandom |openssl dgst -sha1)"
+rabbitmq_password="$(head -c16 /dev/urandom |openssl dgst -sha1)"
+rabbitmq_erlang_cookie="$(head -c16 /dev/urandom |openssl dgst -sha1)"
+openshift_skip_tls_verify=true
+openshift_password=dummy # Not used but required by the installer
+EOF
+
+oc apply -f - <<EOF
+apiVersion: "v1"
+kind: "PersistentVolumeClaim"
+metadata:
+  name: "postgresql"
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "5Gi"
+EOF
+
+./setup_openshift.sh -e openshift_host="$(oc whoami --show-server)" -e openshift_project=tower -e openshift_user="$(oc whoami)" -e openshift_token="$(oc whoami -t)" -e kubernetes_web_image="docker-registry.default.svc.cluster.local:5000/tower/ansible-tower-with-venv" -e kubernetes_task_image="docker-registry.default.svc.cluster.local:5000/tower/ansible-tower-with-venv" -e kubernetes_task_version=latest -e kubernetes_web_version=latest
+
+oc delete route ansible-tower-web-svc
+oc create -f - <<EOF
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ansible-tower-web-svc
+  namespace: tower
+spec:
+  host: ansible.app.itix.fr
+  port:
+    targetPort: http
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: edge
+  to:
+    kind: Service
+    name: ansible-tower-web-svc
+EOF
 ```
