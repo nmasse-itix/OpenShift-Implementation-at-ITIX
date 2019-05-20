@@ -3,5 +3,10 @@
   - name: Complete the OpenShift installation
     hosts: itix
     become: yes
+    pre_tasks:
+    - name: Enable the wildcard routes on the OpenShift router
+      command: oc set env -n default dc/router ROUTER_ALLOW_WILDCARD_ROUTES=true
+    - name: Restart the router
+      command: oc rollout latest -n default dc/router
     roles:
     - { name: 'hostpath-provisioner', tags: 'hostpath-provisioner' }
