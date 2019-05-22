@@ -182,6 +182,9 @@ cat <<EOF > casc.yaml
 jenkins:
   systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code plugin\n\n"
 unclassified:
+  globalPluginConfiguration:
+    # OpenShift Sync Plugin: list of all namespaces to watch for, separated by a space
+    namespace: factory api-lifecycle
   microcksGlobalConfiguration:
     microcksInstallations:
     - microcksDisplayName: Microcks
