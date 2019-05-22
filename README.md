@@ -175,8 +175,34 @@ EOF
 
 ```sh
 oc project factory --display-name="Software Factory"
-oc new-app --template=jenkins-persistent --name=jenkins -p MEMORY_LIMIT=2Gi
+oc new-app --template=jenkins-ephemeral --name=jenkins -p MEMORY_LIMIT=2Gi
+oc set env dc/jenkins INSTALL_PLUGINS="configuration-as-code:latest,configuration-as-code-support:latest"
 oc set env dc/jenkins JENKINS_OPTS=--sessionTimeout=86400
+cat <<EOF > casc.yaml
+jenkins:
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code plugin\n\n"
+unclassified:
+  microcksGlobalConfiguration:
+    microcksInstallations:
+    - microcksDisplayName: Microcks
+      microcksApiURL: https://microcks.app.itix.fr/api
+      microcksCredentialsId: microcks-serviceaccount
+      microcksKeycloakURL: https://sso.app.itix.fr/auth/realms/microcks/
+      disableSSLValidation: true
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - usernamePassword:
+          scope: SYSTEM
+          id: microcks-serviceaccount
+          description: Microcks service account
+          username: microcks-serviceaccount
+          password: '[REDACTED]'
+EOF
+oc create configmap jenkins-casc --from-file=casc.yaml
+oc set volume dc/jenkins --add -m /casc/ --name=casc -t configmap --configmap-name=jenkins-casc
+oc set env dc/jenkins CASC_JENKINS_CONFIG="/casc/"
 
 oc delete route jenkins
 oc create -f - <<EOF
