@@ -1,0 +1,7 @@
+prerequisites_install: false
+run_master_tasks: true
+ns_prefix: integr8ly-
+create_cluster_admin: false
+eval_self_signed_certs: false
+keep_namespaces: true
+eval_seed_users_count: 10

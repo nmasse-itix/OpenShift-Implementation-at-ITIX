@@ -1,4 +1,11 @@
 #
+# Variables used by Integr8ly
+#
+
+[master:children]
+masters
+
+#
 # Variables used by the ITIX playbook
 #
 [itix:vars]

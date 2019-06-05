@@ -2,3 +2,6 @@
 	path = openshift-ansible
 	url = git@github.com:openshift/openshift-ansible.git
 	branch = release-3.11
+[submodule "integr8ly"]
+	path = integr8ly
+	url = https://github.com/integr8ly/installation.git

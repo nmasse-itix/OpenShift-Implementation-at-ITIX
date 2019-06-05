@@ -116,10 +116,11 @@ openshift_master_identity_providers:
 EOF
 ```
 
-Create a file named `group_vars/all`, containing your global variables:
+Create a file named `group_vars/all/itix.yaml`, containing your global variables:
 
 ```sh
-cat <<EOF > group_vars/OSEv3
+mkdir -p group_vars/all/
+cat <<EOF > group_vars/all/itix.yaml
 ---
 # The regular user account you created on your server
 ansible_ssh_user: nicolas
@@ -413,4 +414,11 @@ spec:
     kind: Service
     name: ansible-tower-web-svc
 EOF
+```
+
+## Deploy Integr8ly
+
+```sh
+cd integr8ly
+ansible-playbook -i ../prod.hosts playbooks/install.yml
 ```
