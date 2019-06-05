@@ -1,3 +1,5 @@
+# This file is named "zz-integreatly.yaml" to be read after the integreatly
+# default values (manifest.yaml, common.yml) and thus having priority on them.
 prerequisites_install: false
 run_master_tasks: true
 ns_prefix: integr8ly-
