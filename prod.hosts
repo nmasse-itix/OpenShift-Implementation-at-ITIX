@@ -89,3 +89,7 @@ openshift_node_kubelet_args='{"pods-per-core":["40"]}'
 
 # Set the NodePort range for Bittorrent use
 openshift_node_port_range="6881-6999"
+
+# Integr8ly webapp in dev mode
+osm_custom_cors_origins=['http://localhost:3006']
+
