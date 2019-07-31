@@ -84,12 +84,14 @@ openshift_disable_check=docker_image_availability
 # Inject the MAVEN_MIRROR_URL in all builds
 openshift_builddefaults_json='{"BuildDefaults":{"configuration":{"apiVersion":"v1","env":[{"name":"MAVEN_MIRROR_URL","value":"http://nexus.factory.svc.cluster.local:8081/repository/maven-all-public/"}],"kind":"BuildDefaultsConfig"}}}'
 
-# Raise the pod-per-core and max-pods limits
-openshift_node_kubelet_args='{"pods-per-core":["40"]}'
-
 # Set the NodePort range for Bittorrent use
 openshift_node_port_range="6881-6999"
 
 # Integr8ly webapp in dev mode
 osm_custom_cors_origins=['http://localhost:3006']
 
+# See #2: Raise the pods-per-core limit
+openshift_node_groups=[ {"name": "node-config-all-in-one", "labels": [ "node-role.kubernetes.io/master=true", "node-role.kubernetes.io/infra=true", "node-role.kubernetes.io/compute=true" ], "edits": [ { "key": "kubeletArguments.pods-per-core", "value": [ "40" ] }, { "key": "kubeletArguments.max-pods", "value": [ "250" ] } ] } ]
+
+# Do not fail when certificates are about to expire on the platform
+openshift_certificate_expiry_fail_on_warn=no
