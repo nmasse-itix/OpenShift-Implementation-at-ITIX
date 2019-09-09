@@ -281,6 +281,54 @@ EOF
 oc get oauthclient microcks -o yaml
 ```
 
+### Apicurio
+
+Deploy Apicurio:
+
+```sh
+oc project factory
+oc create -f https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/apicurio-template.yml
+oc create -f https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/apicurio-postgres-template.yml
+oc new-app --template=apicurio-postgres -p GENERATED_DB_USER=apicurio -p GENERATED_DB_PASS=apicurio -p DB_NAME=apicurio
+oc new-app --template=apicurio-studio -p DB_USER=apicurio -p DB_PASS=apicurio -p DB_NAME=apicurio -p KC_REALM=apicurio -p AUTH_ROUTE=sso.app.itix.fr -p WS_ROUTE=apicurio-studio-ws.app.itix.fr -p API_ROUTE=apicurio-studio-api.app.itix.fr -p UI_ROUTE=apicurio-studio.app.itix.fr -p KC_USER=dummy -p KC_PASS=dummy
+```
+
+Configure Microcks integration:
+
+```sh
+oc set env dc/apicurio-studio-api APICURIO_MICROCKS_API_URL=https://microcks.app.itix.fr/api APICURIO_MICROCKS_CLIENT_ID=microcks-serviceaccount APICURIO_MICROCKS_CLIENT_SECRET=[REDACTED]
+oc set env dc/apicurio-studio-ui APICURIO_UI_FEATURE_MICROCKS=true
+```
+
+Configure Red Hat SSO for Apicurio:
+
+```sh
+curl -o realm-template.json https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/auth/realm.json
+m4 -DAPICURIO_UI_URL=https://apicurio-studio.app.itix.fr realm-template.json > realm-to-be-imported.json
+```
+
+- Create a new realm named "apicurio" by importing the file `realm-to-be-imported.json`
+- Go to "Identity Provider" and add an "openshift-v3" IdP
+- Create the corresponding OpenShift OAuthClient
+
+```sh
+oc create -f - <<EOF
+kind: OAuthClient
+apiVersion: v1
+metadata:
+  name: apicurio
+respondWithChallenges: false
+secret: $(uuidgen)
+redirectURIs:
+- https://sso.app.itix.fr/auth/realms/apicurio/broker/openshift-v3/endpoint
+EOF
+oc get oauthclient apicurio -o yaml
+```
+
+- Go to "Authentication" and configure the Identity Provider Redirector to use the openshift-v3 IdP
+- Go to "Realm Settings" > "Themes" and set the themes to "rh-sso"
+- Configure [Account Linking](https://apicurio-studio.readme.io/docs/setting-up-keycloak-for-use-with-apicurio#section-7-configure-keycloak-for-account-linking)
+
 ### Nexus
 
 ```sh
